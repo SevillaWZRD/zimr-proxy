@@ -1,0 +1,26 @@
+{
+  "updated": "2026-04-12",
+  "count": 20,
+  "trades": [
+    {"name":"Nancy Pelosi","ticker":"GOOGL","asset_description":"Alphabet Inc (Class A)","type":"Purchase","amount":"$250,001 - $500,000","date":"2026-01-26","traded":"2026-01-16","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Nancy Pelosi","ticker":"AMZN","asset_description":"Amazon.com Inc","type":"Purchase","amount":"$100,001 - $250,000","date":"2026-01-26","traded":"2026-01-16","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Nancy Pelosi","ticker":"AMZN","asset_description":"Amazon.com Inc","type":"Sale","amount":"$1,000,001 - $5,000,000","date":"2026-01-26","traded":"2025-12-24","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Nancy Pelosi","ticker":"GOOGL","asset_description":"Alphabet Inc","type":"Sale","amount":"$1,000,001 - $5,000,000","date":"2026-01-26","traded":"2025-12-30","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Nancy Pelosi","ticker":"GOOGL","asset_description":"Alphabet Inc (Class A)","type":"Purchase","amount":"$500,001 - $1,000,000","date":"2026-01-26","traded":"2025-12-30","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Tommy Tuberville","ticker":"NVDA","asset_description":"NVIDIA Corporation","type":"Purchase","amount":"$50,001 - $100,000","date":"2026-02-10","traded":"2026-01-28","party":"Republican","state":"AL","chamber":"Senate"},
+    {"name":"Marjorie Taylor Greene","ticker":"TSLA","asset_description":"Tesla Inc","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-02-14","traded":"2026-02-01","party":"Republican","state":"GA","chamber":"House"},
+    {"name":"Dan Crenshaw","ticker":"LMT","asset_description":"Lockheed Martin Corp","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-02-20","traded":"2026-02-10","party":"Republican","state":"TX","chamber":"House"},
+    {"name":"Josh Gottheimer","ticker":"META","asset_description":"Meta Platforms Inc","type":"Sale (Partial)","amount":"$100,001 - $250,000","date":"2026-03-01","traded":"2026-02-15","party":"Democrat","state":"NJ","chamber":"House"},
+    {"name":"Mark Kelly","ticker":"AAPL","asset_description":"Apple Inc","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-03-10","traded":"2026-02-28","party":"Democrat","state":"AZ","chamber":"Senate"},
+    {"name":"Ro Khanna","ticker":"NVDA","asset_description":"NVIDIA Corporation","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-03-15","traded":"2026-03-01","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Michael McCaul","ticker":"RTX","asset_description":"RTX Corporation","type":"Purchase","amount":"$50,001 - $100,000","date":"2026-03-20","traded":"2026-03-05","party":"Republican","state":"TX","chamber":"House"},
+    {"name":"Shelley Moore Capito","ticker":"JPM","asset_description":"JPMorgan Chase & Co","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-03-22","traded":"2026-03-10","party":"Republican","state":"WV","chamber":"Senate"},
+    {"name":"Nancy Pelosi","ticker":"MSFT","asset_description":"Microsoft Corporation","type":"Purchase","amount":"$500,001 - $1,000,000","date":"2026-03-25","traded":"2026-03-12","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Tim Burchett","ticker":"XOM","asset_description":"Exxon Mobil Corporation","type":"Sale (Full)","amount":"$15,001 - $50,000","date":"2026-03-28","traded":"2026-03-15","party":"Republican","state":"TN","chamber":"House"},
+    {"name":"John Curtis","ticker":"BA","asset_description":"Boeing Company","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-04-01","traded":"2026-03-20","party":"Republican","state":"UT","chamber":"Senate"},
+    {"name":"Debbie Wasserman Schultz","ticker":"AMZN","asset_description":"Amazon.com Inc","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-04-03","traded":"2026-03-22","party":"Democrat","state":"FL","chamber":"House"},
+    {"name":"Tommy Tuberville","ticker":"AAPL","asset_description":"Apple Inc","type":"Sale (Partial)","amount":"$50,001 - $100,000","date":"2026-04-05","traded":"2026-03-25","party":"Republican","state":"AL","chamber":"Senate"},
+    {"name":"Nancy Pelosi","ticker":"NVDA","asset_description":"NVIDIA Corporation","type":"Purchase","amount":"$1,000,001 - $5,000,000","date":"2026-04-08","traded":"2026-03-28","party":"Democrat","state":"CA","chamber":"House"},
+    {"name":"Marjorie Taylor Greene","ticker":"GOOGL","asset_description":"Alphabet Inc","type":"Purchase","amount":"$15,001 - $50,000","date":"2026-04-10","traded":"2026-04-01","party":"Republican","state":"GA","chamber":"House"}
+  ]
+}
