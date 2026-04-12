@@ -13,85 +13,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch and save trades
+      - name: Fetch trades
         run: |
           mkdir -p data
-          python3 << 'PYEOF'
-          import urllib.request, json
-          from datetime import datetime
+          python3 - << 'PYEOF'
+import urllib.request, json
+from datetime import datetime
 
-          trades = []
+trades = []
 
-          # Source 1: House Stock Watcher
-          try:
-              req = urllib.request.Request(
-                  'https://housestockwatcher.com/api',
-                  headers={
-                      'User-Agent': 'Mozilla/5.0 (compatible; ZIMR-Bot/1.0)',
-                      'Accept': 'application/json',
-                  }
-              )
-              with urllib.request.urlopen(req, timeout=20) as r:
-                  data = json.loads(r.read())
-              for t in data[:100]:
-                  trades.append({
-                      'name':              t.get('representative', ''),
-                      'ticker':            t.get('ticker', '--'),
-                      'asset_description': t.get('asset_description', ''),
-                      'type':              t.get('type', ''),
-                      'amount':            t.get('amount', ''),
-                      'date':              t.get('disclosure_date', ''),
-                      'traded':            t.get('transaction_date', ''),
-                      'party':             t.get('party', ''),
-                      'state':             t.get('state', ''),
-                      'chamber':           'House',
-                  })
-              print(f"House: {len(trades)} trades")
-          except Exception as e:
-              print(f"House failed: {e}")
+try:
+    req = urllib.request.Request(
+        'https://housestockwatcher.com/api',
+        headers={'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json'}
+    )
+    with urllib.request.urlopen(req, timeout=20) as r:
+        data = json.loads(r.read())
+    for t in data[:100]:
+        trades.append({
+            'name': t.get('representative', ''),
+            'ticker': t.get('ticker', '--'),
+            'asset_description': t.get('asset_description', ''),
+            'type': t.get('type', ''),
+            'amount': t.get('amount', ''),
+            'date': t.get('disclosure_date', ''),
+            'traded': t.get('transaction_date', ''),
+            'party': t.get('party', ''),
+            'state': t.get('state', ''),
+            'chamber': 'House',
+        })
+    print(f"Got {len(trades)} trades")
+except Exception as e:
+    print(f"Error: {e}")
+    exit(1)
 
-          # Source 2: Senate Stock Watcher (individual senator files)
-          senators = ['kelly','tuberville','pelosi','crenshaw','greene']
-          for s in senators:
-              try:
-                  url = f'https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/data/{s}.json'
-                  req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-                  with urllib.request.urlopen(req, timeout=10) as r:
-                      senator = json.loads(r.read())
-                  for tx in senator.get('transactions', [])[:20]:
-                      trades.append({
-                          'name':              senator.get('senator', s.title()),
-                          'ticker':            tx.get('ticker', '--'),
-                          'asset_description': tx.get('asset_description', ''),
-                          'type':              tx.get('type', ''),
-                          'amount':            tx.get('amount', ''),
-                          'date':              tx.get('disclosure_date', ''),
-                          'traded':            tx.get('transaction_date', ''),
-                          'party':             senator.get('party', ''),
-                          'state':             senator.get('state', ''),
-                          'chamber':           'Senate',
-                      })
-              except Exception as e:
-                  print(f"Senator {s}: {e}")
+trades.sort(key=lambda x: x.get('date',''), reverse=True)
+result = {'trades': trades[:100], 'count': len(trades), 'updated': datetime.utcnow().isoformat() + 'Z'}
 
-          if not trades:
-              print("No trades fetched — keeping existing file")
-              exit(0)
-
-          # Sort newest first
-          trades.sort(key=lambda x: x.get('date',''), reverse=True)
-
-          result = {
-              'trades': trades[:100],
-              'count': len(trades),
-              'updated': datetime.utcnow().isoformat() + 'Z'
-          }
-
-          with open('data/trades.json', 'w') as f:
-              json.dump(result, f, indent=2)
-
-          print(f"Saved {len(trades)} trades to data/trades.json")
-          PYEOF
+with open('data/trades.json', 'w') as f:
+    json.dump(result, f, indent=2)
+print("Saved!")
+PYEOF
 
       - name: Commit
         run: |
