@@ -1,0 +1,174 @@
+name: Fetch Congress Trades
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Every day at 8:00 UTC
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch trades from Capitol Trades
+        run: |
+          # Try Capitol Trades first (they allow curl with proper headers)
+          curl -s \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+            -H "Accept-Language: en-US,en;q=0.5" \
+            "https://www.capitoltrades.com/trades?pageSize=96" \
+            -o page.html --max-time 30 || echo "Capitol Trades failed"
+
+          # Extract JSON from Nuxt data
+          python3 << 'PYEOF'
+          import json, re, sys
+
+          try:
+              with open('page.html', 'r', encoding='utf-8', errors='ignore') as f:
+                  html = f.read()
+
+              # Find __NUXT_DATA__
+              match = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>', html)
+              if not match:
+                  print("No Nuxt data found")
+                  sys.exit(1)
+
+              raw = json.loads(match.group(1))
+              trades = []
+
+              # Walk through flat array looking for trade objects
+              for i, item in enumerate(raw):
+                  if not isinstance(item, dict):
+                      continue
+                  # Trade objects have txDate
+                  if 'txDate' not in item and 'transactionDate' not in item:
+                      continue
+
+                  # Look for politician info nearby
+                  name = ''
+                  party = ''
+                  state = ''
+                  chamber = ''
+                  ticker = '--'
+                  asset = ''
+
+                  # Search surrounding items for politician/issuer data
+                  for j in range(max(0, i-10), min(len(raw), i+10)):
+                      near = raw[j]
+                      if not isinstance(near, dict):
+                          continue
+                      if 'name' in near and 'party' in near:
+                          name = near.get('name', '')
+                          party = near.get('party', '')
+                          state = near.get('state', '')
+                          chamber = near.get('chamber', '')
+                      if 'symbol' in near:
+                          ticker = near.get('symbol', '--')
+                          asset = near.get('name', '')
+
+                  trades.append({
+                      'name': name,
+                      'ticker': ticker,
+                      'asset_description': asset,
+                      'type': item.get('txType', item.get('type', '')),
+                      'amount': item.get('txValue', item.get('amount', '')),
+                      'date': item.get('discloseDate', item.get('disclosureDate', '')),
+                      'traded': item.get('txDate', item.get('transactionDate', '')),
+                      'party': party,
+                      'state': state,
+                      'chamber': chamber,
+                  })
+
+              if not trades:
+                  print("No trades parsed")
+                  sys.exit(1)
+
+              print(f"Parsed {len(trades)} trades")
+              with open('data/trades.json', 'w') as f:
+                  json.dump({'trades': trades, 'count': len(trades), 'updated': __import__('datetime').datetime.utcnow().isoformat()}, f)
+
+          except Exception as e:
+              print(f"Error: {e}")
+              sys.exit(1)
+          PYEOF
+
+      - name: Fallback to House Stock Watcher if needed
+        if: failure()
+        run: |
+          mkdir -p data
+          python3 << 'PYEOF'
+          import urllib.request, json
+          from datetime import datetime
+
+          # Try multiple sources
+          sources = [
+              'https://housestockwatcher.com/api',
+              'https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions_for_senators.json',
+          ]
+
+          trades = []
+          for url in sources:
+              try:
+                  req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                  with urllib.request.urlopen(req, timeout=15) as r:
+                      data = json.loads(r.read())
+
+                  if isinstance(data, list):
+                      for t in data[:80]:
+                          if isinstance(t, dict) and ('transactions' in t):
+                              # Senate format
+                              for tx in t.get('transactions', []):
+                                  trades.append({
+                                      'name': t.get('senator', ''),
+                                      'ticker': tx.get('ticker', '--'),
+                                      'asset_description': tx.get('asset_description', ''),
+                                      'type': tx.get('type', ''),
+                                      'amount': tx.get('amount', ''),
+                                      'date': tx.get('disclosure_date', ''),
+                                      'traded': tx.get('transaction_date', ''),
+                                      'party': t.get('party', ''),
+                                      'state': t.get('state', ''),
+                                      'chamber': 'Senate',
+                                  })
+                          elif isinstance(t, dict):
+                              # House format
+                              trades.append({
+                                  'name': t.get('representative', ''),
+                                  'ticker': t.get('ticker', '--'),
+                                  'asset_description': t.get('asset_description', ''),
+                                  'type': t.get('type', ''),
+                                  'amount': t.get('amount', ''),
+                                  'date': t.get('disclosure_date', ''),
+                                  'traded': t.get('transaction_date', ''),
+                                  'party': t.get('party', ''),
+                                  'state': t.get('state', ''),
+                                  'chamber': 'House',
+                              })
+
+                  if trades:
+                      print(f"Got {len(trades)} trades from {url}")
+                      break
+              except Exception as e:
+                  print(f"Failed {url}: {e}")
+
+          trades.sort(key=lambda x: x.get('date', ''), reverse=True)
+
+          with open('data/trades.json', 'w') as f:
+              json.dump({
+                  'trades': trades[:100],
+                  'count': len(trades),
+                  'updated': datetime.utcnow().isoformat()
+              }, f)
+
+          print(f"Saved {len(trades)} trades")
+          PYEOF
+
+      - name: Commit trades data
+        run: |
+          git config user.name "ZIMR Bot"
+          git config user.email "bot@zimrcapital.com"
+          git add data/trades.json
+          git diff --staged --quiet || git commit -m "Update congress trades $(date -u +%Y-%m-%d)"
+          git push
